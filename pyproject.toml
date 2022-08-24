@@ -1,0 +1,31 @@
+[build-system]
+requires = ['hatchling']
+build-backend = 'hatchling.build'
+
+[project]
+name = 'purebox'
+version = '0.0.1'
+authors = [
+    { name='4ndrs', email='andres.degozaru@gmail.com' },
+]
+description = 'Utility to draw rectangles on programs using Xlib to get x, y, width, height coordinates'
+readme = 'README.md'
+license = { file='LICENSE' }
+requires-python = '>=3.10'
+dependencies = [
+    'python-xlib==0.31',
+]
+classifiers = [
+    'Programming Language :: Python :: 3',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: POSIX :: Linux',
+    'Environment :: X11 Applications',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+]
+
+[project.scripts]
+purebox = 'purebox.__main__:main'
+
+[project.urls]
+'Homepage' = 'https://github.com/4ndrs/PureBox'
+'Bug Tracker' = 'https://github.com/4ndrs/PureBox/issues'
