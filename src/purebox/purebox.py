@@ -32,7 +32,7 @@ class PureBox:
         self.width, self.height = None, None
 
         kwargs = {**kwargs}
-        self._stop_key = ord(kwargs.get("stop_key", "q"))
+        self._stop_key = ord(kwargs.get("stop_key", "c"))
         self._modify_key = ord(kwargs.get("modify", "m"))
 
         self._line_color = kwargs.get("line_color", 0xFF1493)
