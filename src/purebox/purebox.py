@@ -110,7 +110,7 @@ class PureBox:
                 modifiers=X.AnyModifier,
                 owner_events=False,
                 pointer_mode=X.GrabModeAsync,
-                keyboard_mode=X.GrabModeSync,
+                keyboard_mode=X.GrabModeAsync,
             )
 
     def _ungrab_keys(self, keys):
