@@ -78,29 +78,29 @@ class PureBox:
             line_width=self._line_width,
         )
 
-        self._grab_keys((self._stop_key, self._modify_key))
-        self._window.map()
+        try:
+            self._grab_keys((self._stop_key, self._modify_key))
+            self._window.map()
 
-        while True:
-            event = self._display.next_event()
+            while True:
+                event = self._display.next_event()
 
-            match event.type:
-                case X.Expose:
-                    self._draw()
-                case X.KeyPress:
-                    if event.detail == self._stop_key:
-                        break
-                    if event.detail == self._modify_key:
-                        # Not implemented, does the same as stop_key
-                        break
-                case X.MotionNotify:
-                    self._x2 = event.event_x
-                    self._y2 = event.event_y
-                    self._draw()
+                match event.type:
+                    case X.Expose:
+                        self._draw()
+                    case X.KeyPress:
+                        if event.detail == self._stop_key:
+                            break
+                        if event.detail == self._modify_key:
+                            # Not implemented, does the same as stop_key
+                            break
+                    case X.MotionNotify:
+                        self._x2 = event.event_x
+                        self._y2 = event.event_y
+                        self._draw()
 
-        # self._ungrab_keys((self._stop_key, self._modify_key))
-        # self._window.destroy()
-        self._display.close()
+        finally:
+            self._display.close()
 
     def _grab_keys(self, keys):
         """Grabs the keys"""
