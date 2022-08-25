@@ -16,7 +16,7 @@ class PureBox:
         y:          the starting y position.
 
         Optional keyword arguments:
-        stop_key:   the key to quit drawing, default is 'q'.
+        stop_key:   the key to quit drawing, default is 'c'.
         modify_key: the key to modify the drawn rectangle, default is 'm'.
         line_color: color of the drawn lines, default is '0xFF1493'.
         line_width: width of the drawn lines, default is '3'."""
