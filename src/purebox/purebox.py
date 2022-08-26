@@ -66,10 +66,14 @@ class PureBox:
             self._src_window.geometry.height,
             self._src_window.geometry.border_width,
             self._src_window.geometry.depth,
-            override_redirect=True,
-            event_mask=X.ExposureMask | X.KeyPressMask | X.PointerMotionMask,
+            override_redirect=False,
+            event_mask=X.ExposureMask
+            | X.KeyPressMask
+            | X.PointerMotionMask
+            | X.ButtonPressMask,
         )
 
+        self._window.set_wm_name("PureBox")
         self._window.set_wm_class("purebox", "PureBox")
         self._window.set_wm_transient_for(self._src_window)
 
@@ -79,7 +83,6 @@ class PureBox:
         )
 
         try:
-            self._grab_keys((self._stop_key, self._modify_key))
             self._window.map()
 
             while True:
@@ -94,6 +97,8 @@ class PureBox:
                         if event.detail == self._modify_key:
                             # Not implemented, does the same as stop_key
                             break
+                    case X.ButtonPress:
+                        break
                     case X.MotionNotify:
                         self._x2 = event.event_x
                         self._y2 = event.event_y
@@ -101,22 +106,6 @@ class PureBox:
 
         finally:
             self._display.close()
-
-    def _grab_keys(self, keys):
-        """Grabs the keys"""
-        for key in keys:
-            self._src_window.grab_key(
-                key=key,
-                modifiers=X.AnyModifier,
-                owner_events=False,
-                pointer_mode=X.GrabModeAsync,
-                keyboard_mode=X.GrabModeAsync,
-            )
-
-    def _ungrab_keys(self, keys):
-        """Releases the keys"""
-        for key in keys:
-            self._src_window.ungrab_key(key, X.AnyModifier)
 
     def _draw(self):
         """Updates the rectangle on the screen; ***internal use only.***
