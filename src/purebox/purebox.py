@@ -134,34 +134,7 @@ class PureBox:
             )
 
         try:
-            self._window.map()
-
-            while True:
-                event = self._display.next_event()
-
-                match event.type:
-                    case X.Expose:
-                        self._draw()
-                    case X.KeyPress:
-                        if event.detail == self._stop_key:
-                            break
-                        if event.detail == self._modify_key:
-                            # Not implemented, does the same as stop_key
-                            break
-                    case X.ButtonPress:
-                        break
-                    case X.MotionNotify:
-                        if (
-                            event.event_x > self._restricted_area.max_x
-                            or event.event_x < self._restricted_area.min_x
-                            or event.event_y > self._restricted_area.max_y
-                            or event.event_y < self._restricted_area.min_y
-                        ):
-                            continue
-                        self._x2 = event.event_x
-                        self._y2 = event.event_y
-                        self._draw()
-
+            self._loop()
         finally:
             self._display.close()
             if self._real_width != 0 and self._real_height != 0:
@@ -179,6 +152,35 @@ class PureBox:
 
                 self.x = math.ceil(self.x * proportion)
                 self.y = math.ceil(self.y * proportion)
+
+    def _loop(self):
+        self._window.map()
+
+        while True:
+            event = self._display.next_event()
+
+            match event.type:
+                case X.Expose:
+                    self._draw()
+                case X.KeyPress:
+                    if event.detail == self._stop_key:
+                        break
+                    if event.detail == self._modify_key:
+                        # Not implemented, does the same as stop_key
+                        break
+                case X.ButtonPress:
+                    break
+                case X.MotionNotify:
+                    if (
+                        event.event_x > self._restricted_area.max_x
+                        or event.event_x < self._restricted_area.min_x
+                        or event.event_y > self._restricted_area.max_y
+                        or event.event_y < self._restricted_area.min_y
+                    ):
+                        continue
+                    self._x2 = event.event_x
+                    self._y2 = event.event_y
+                    self._draw()
 
     def _draw(self):
         """Updates the rectangle on the screen; ***internal use only.***
