@@ -18,7 +18,7 @@ def main():
     x = int(sys.argv[2])
     y = int(sys.argv[3])
 
-    if len(sys.argv) > 3:
+    if len(sys.argv) > 4:
         real_width = int(sys.argv[4])
         real_height = int(sys.argv[5])
         box = PureBox(
