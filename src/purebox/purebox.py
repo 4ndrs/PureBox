@@ -60,43 +60,8 @@ class PureBox:
 
     def draw(self):
         """Starts the drawing of the rectangle."""
-        self._display = Xlib.display.Display()  # use the default display
 
-        root = self._display.screen().root
-        self._src_window = self._find_window(self._src_pid, root)
-        if self._src_window is None:
-            raise PIDNotFoundError(
-                f"Window with Process ID '{self._src_pid}' not found"
-            )
-
-        # convert to key codes with the current display
-        self._stop_key = self._display.keysym_to_keycode(self._stop_key)
-        self._modify_key = self._display.keysym_to_keycode(self._stop_key)
-
-        root = self._display.screen().root
-        self._src_window.geometry = self._src_window.get_geometry()
-        self._window = root.create_window(
-            self._src_window.geometry.x,
-            self._src_window.geometry.y,
-            self._src_window.geometry.width,
-            self._src_window.geometry.height,
-            self._src_window.geometry.border_width,
-            self._src_window.geometry.depth,
-            override_redirect=False,
-            event_mask=X.ExposureMask
-            | X.KeyPressMask
-            | X.PointerMotionMask
-            | X.ButtonPressMask,
-        )
-
-        self._window.set_wm_name("PureBox")
-        self._window.set_wm_class("purebox", "PureBox")
-        self._window.set_wm_transient_for(self._src_window)
-
-        self._gc = self._window.create_gc(
-            foreground=self._line_color,
-            line_width=self._line_width,
-        )
+        self._set_display_up()
 
         self._restricted_area.max_x = self._src_window.geometry.width
         self._restricted_area.max_y = self._src_window.geometry.height
@@ -181,6 +146,45 @@ class PureBox:
                     self._x2 = event.event_x
                     self._y2 = event.event_y
                     self._draw()
+
+    def _set_display_up(self):
+        self._display = Xlib.display.Display()  # use the default display
+
+        root = self._display.screen().root
+        self._src_window = self._find_window(self._src_pid, root)
+        if self._src_window is None:
+            raise PIDNotFoundError(
+                f"Window with Process ID '{self._src_pid}' not found"
+            )
+
+        # convert to key codes with the current display
+        self._stop_key = self._display.keysym_to_keycode(self._stop_key)
+        self._modify_key = self._display.keysym_to_keycode(self._stop_key)
+
+        root = self._display.screen().root
+        self._src_window.geometry = self._src_window.get_geometry()
+        self._window = root.create_window(
+            self._src_window.geometry.x,
+            self._src_window.geometry.y,
+            self._src_window.geometry.width,
+            self._src_window.geometry.height,
+            self._src_window.geometry.border_width,
+            self._src_window.geometry.depth,
+            override_redirect=False,
+            event_mask=X.ExposureMask
+            | X.KeyPressMask
+            | X.PointerMotionMask
+            | X.ButtonPressMask,
+        )
+
+        self._window.set_wm_name("PureBox")
+        self._window.set_wm_class("purebox", "PureBox")
+        self._window.set_wm_transient_for(self._src_window)
+
+        self._gc = self._window.create_gc(
+            foreground=self._line_color,
+            line_width=self._line_width,
+        )
 
     def _draw(self):
         """Updates the rectangle on the screen; ***internal use only.***
