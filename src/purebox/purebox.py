@@ -34,6 +34,7 @@ class PureBox:
         self._window = None
         self._src_window = None
         self._gc = None
+        self._bg_pixmap = None
         self._src_pid = pid
         self._x2, self._y2 = x, y
         self._const_x, self._const_y = x, y
@@ -186,12 +187,31 @@ class PureBox:
             line_width=self._line_width,
         )
 
+        # Pixmap for background, contains the source window's copied area
+        self._bg_pixmap = self._window.create_pixmap(
+            self._src_window.geometry.width,
+            self._src_window.geometry.height,
+            self._src_window.geometry.depth,
+        )
+        bg_gc = self._bg_pixmap.create_gc()
+
+        self._bg_pixmap.copy_area(
+            gc=bg_gc,
+            src_drawable=self._src_window,
+            width=self._src_window.geometry.width,
+            height=self._src_window.geometry.height,
+            src_x=0,
+            src_y=0,
+            dst_x=0,
+            dst_y=0,
+        )
+
     def _draw(self):
         """Updates the rectangle on the screen; ***internal use only.***
         Use the public draw() method to draw with your own instance."""
         self._window.copy_area(
             gc=self._gc,
-            src_drawable=self._src_window,
+            src_drawable=self._bg_pixmap,
             width=self._src_window.geometry.width,
             height=self._src_window.geometry.height,
             src_x=0,
