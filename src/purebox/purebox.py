@@ -3,6 +3,9 @@
 """Utility to draw rectangles on programs using python-xlib to get the x, y,
 width, height coordinates."""
 
+import math
+from types import SimpleNamespace
+
 import Xlib.display
 from Xlib import X
 
@@ -19,7 +22,14 @@ class PureBox:
         stop_key:   the key to quit drawing, default is 'c'.
         modify_key: the key to modify the drawn rectangle, default is 'm'.
         line_color: color of the drawn lines, default is '0xFF1493'.
-        line_width: width of the drawn lines, default is '3'."""
+        line_width: width of the drawn lines, default is '3'.
+        real_width: the real width of the area inside the window
+        real_height: the real height of the area inside the window
+                     These real widths, and heights  will restrict the drawn
+                     area inside the window keeping the aspect ratio even
+                     if the source window has different sizes. The returned
+                     crop coordinates will be normalized using as reference
+                     these sizes"""
         self._display = None
         self._window = None
         self._src_window = None
@@ -27,6 +37,9 @@ class PureBox:
         self._src_pid = pid
         self._x2, self._y2 = x, y
         self._const_x, self._const_y = x, y
+        self._restricted_area = SimpleNamespace(
+            min_x=0, max_x=0, min_y=0, max_y=0
+        )
 
         self.x, self.y = x, y
         self.width, self.height = None, None
@@ -37,6 +50,9 @@ class PureBox:
 
         self._line_color = kwargs.get("line_color", 0xFF1493)
         self._line_width = kwargs.get("line_width", 3)
+
+        self._real_width = kwargs.get("real_width", 0)
+        self._real_height = kwargs.get("real_height", 0)
 
     def get_coordinates(self):
         """Returns the coordinates as tuple(x, y, width, height)"""
@@ -82,6 +98,41 @@ class PureBox:
             line_width=self._line_width,
         )
 
+        self._restricted_area.max_x = self._src_window.geometry.width
+        self._restricted_area.max_y = self._src_window.geometry.height
+
+        # Calculate the restricted area if the real width, and height are given
+        x_boundary, y_boundary = 0, 0
+        if self._real_width != 0 and self._real_height != 0:
+            # get the aspect ratio'ed height, width
+            ratio_width = (
+                self._src_window.geometry.height
+                * self._real_width
+                // self._real_height
+            )
+            ratio_height = (
+                self._src_window.geometry.width
+                * self._real_height
+                // self._real_width
+            )
+
+            # Replace whichever is bigger than src_window's
+            if ratio_width > self._src_window.geometry.width:
+                ratio_width = self._src_window.geometry.width
+                y_boundary = self._src_window.geometry.height - ratio_height
+            elif ratio_height > self._src_window.geometry.height:
+                ratio_height = self._src_window.geometry.height
+                x_boundary = self._src_window.geometry.width - ratio_width
+
+            self._restricted_area.min_x = 0 + x_boundary / 2
+            self._restricted_area.max_x = (
+                self._src_window.geometry.width - x_boundary / 2
+            )
+            self._restricted_area.min_y = 0 + y_boundary / 2
+            self._restricted_area.max_y = (
+                self._src_window.geometry.height - y_boundary / 2
+            )
+
         try:
             self._window.map()
 
@@ -100,12 +151,34 @@ class PureBox:
                     case X.ButtonPress:
                         break
                     case X.MotionNotify:
+                        if (
+                            event.event_x > self._restricted_area.max_x
+                            or event.event_x < self._restricted_area.min_x
+                            or event.event_y > self._restricted_area.max_y
+                            or event.event_y < self._restricted_area.min_y
+                        ):
+                            continue
                         self._x2 = event.event_x
                         self._y2 = event.event_y
                         self._draw()
 
         finally:
             self._display.close()
+            if self._real_width != 0 and self._real_height != 0:
+                # Remove/add the boundaries and normalize
+                self.y -= math.ceil(y_boundary / 2)
+                self.x -= math.ceil(x_boundary / 2)
+
+                proportion = min(
+                    self._real_width / ratio_width,
+                    self._real_height / ratio_height,
+                )
+
+                self.width = math.ceil(self.width * proportion)
+                self.height = math.ceil(self.height * proportion)
+
+                self.x = math.ceil(self.x * proportion)
+                self.y = math.ceil(self.y * proportion)
 
     def _draw(self):
         """Updates the rectangle on the screen; ***internal use only.***

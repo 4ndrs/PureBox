@@ -18,7 +18,14 @@ def main():
     x = int(sys.argv[2])
     y = int(sys.argv[3])
 
-    box = PureBox(pid, x, y)
+    if len(sys.argv) > 3:
+        real_width = int(sys.argv[4])
+        real_height = int(sys.argv[5])
+        box = PureBox(
+            pid, x, y, real_width=real_width, real_height=real_height
+        )
+    else:
+        box = PureBox(pid, x, y)
 
     try:
         box.draw()
